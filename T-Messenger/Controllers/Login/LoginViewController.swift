@@ -1,0 +1,167 @@
+//
+//  LoginViewController.swift
+//  T-Messenger
+//
+//  Created by Tiến on 6/13/20.
+//  Copyright © 2020 Tiến. All rights reserved.
+//
+
+import UIKit
+import FirebaseAuth
+class LoginViewController: UIViewController {
+    
+    private let scrollView:UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.clipsToBounds = true
+        return scrollView
+    }()
+    
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "logo")
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
+    private let emailField:UITextField = {
+        let emailField = UITextField()
+        emailField.autocapitalizationType = .none
+        emailField.autocorrectionType = .no
+        emailField.returnKeyType = .continue
+        emailField.layer.cornerRadius = 12
+        emailField.layer.borderWidth = 1
+        emailField.layer.borderColor = UIColor.black.cgColor
+        emailField.placeholder = "Enter your email address"
+        emailField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
+        emailField.leftViewMode = .always
+        return emailField
+    }()
+    
+    private let passwordField:UITextField = {
+        let passwordField = UITextField()
+        passwordField.autocapitalizationType = .none
+        passwordField.autocorrectionType = .no
+        passwordField.returnKeyType = .continue
+        passwordField.layer.cornerRadius = 12
+        passwordField.layer.borderWidth = 1
+        passwordField.layer.borderColor = UIColor.black.cgColor
+        passwordField.placeholder = "Enter your password"
+        passwordField.isSecureTextEntry = true
+        passwordField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
+        passwordField.leftViewMode = .always
+        return passwordField
+    }()
+    
+    private let loginButton:UIButton = {
+        let button = UIButton()
+        button.setTitle("Log In", for: .normal)
+        button.backgroundColor = .link
+        button.layer.cornerRadius = 12
+        button.layer.masksToBounds = true
+        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
+        return button
+    }()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .white
+        title = "Log In"
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register",
+        style: .done,
+        target: self,
+        action: #selector(DidTapRegister))
+        
+        view.addSubview(scrollView)
+        scrollView.addSubview(imageView)
+        scrollView.addSubview(emailField)
+        scrollView.addSubview(passwordField)
+        scrollView.addSubview(loginButton)
+        
+        loginButton.addTarget(self,
+                              action: #selector(loginBtnAction),
+                              for: .touchUpInside)
+        emailField.delegate = self
+        passwordField.delegate = self
+        
+        
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        scrollView.frame = view.bounds
+        let size = scrollView.width/3
+        imageView.frame = CGRect(x: (scrollView.width-size)/2,
+                                 y: 50,
+                                 width: size,
+                                 height: size)
+        emailField.frame = CGRect(x: 30,
+                                  y: imageView.bottom+10,
+                                  width: scrollView.width-60,
+                                  height: 52)
+        passwordField.frame = CGRect(x: 30,
+                                  y: emailField.bottom+10,
+                                  width: scrollView.width-60,
+                                  height: 52)
+        loginButton.frame = CGRect(x: 30,
+                                   y: passwordField.bottom+10,
+                                   width: scrollView.width-60,
+                                   height: 52)
+
+    }
+    
+    @objc private func DidTapRegister(){
+        let vc = RegisterViewController()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    @objc private func loginBtnAction(){
+        print("Login Button tapped")
+        loginButton.zoomInWithEasing()
+        emailField.resignFirstResponder()
+        passwordField.resignFirstResponder()
+        
+        //Validation email and password
+        guard let email = emailField.text, let password = passwordField.text, !email.isEmpty,
+            !password.isEmpty, password.count >= 6 else {
+                alertUserLoginError()
+                return
+        }
+        
+        //FIrebase Login
+        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { [weak self] (AuthDataResult, Error) in
+            guard let strongself = self else{
+                return
+            }
+            guard let result = AuthDataResult, Error == nil else{
+                print("Failed to login")
+                return
+            }
+            let user = result.user
+            
+            print("login success as user: \(user)")
+            strongself.navigationController?.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    func alertUserLoginError(){
+        let alert = UIAlertController(title: "Woops",
+                                      message: "Please Enter your account information",
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel,
+                                      handler: nil))
+        present(alert, animated: true)
+    }
+    
+}
+extension LoginViewController: UITextFieldDelegate{
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == emailField{
+            passwordField.becomeFirstResponder()
+        }
+        else{
+            loginBtnAction()
+        }
+        return true
+    }
+}

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "8B144C02-1D7D-43D0-83E9-2B6C29C3AD73"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BDC4AB03-66D3-4369-BC03-BF5BB9A34F29"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "T-Messenger/Controllers/Login/LoginViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "24"
+            endingLineNumber = "24"
+            landmarkName = "imageView"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "BDC4AB03-66D3-4369-BC03-BF5BB9A34F29 - 95b86e741851233"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "T_Messenger.LoginViewController.init(nibName: Swift.Optional&lt;Swift.String&gt;, bundle: Swift.Optional&lt;__C.NSBundle&gt;) -&gt; T_Messenger.LoginViewController"
+                  moduleName = "T-Messenger"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Applications/SwiftProjects/T-Messenger/T-Messenger/Controllers/Login/LoginViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "26"
+                  endingLineNumber = "26"
+                  offsetFromSymbolStart = "171">
+               </Location>
+               <Location
+                  uuid = "BDC4AB03-66D3-4369-BC03-BF5BB9A34F29 - 61b3287bb87c5148"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "T_Messenger.LoginViewController.init(coder: __C.NSCoder) -&gt; Swift.Optional&lt;T_Messenger.LoginViewController&gt;"
+                  moduleName = "T-Messenger"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Applications/SwiftProjects/T-Messenger/T-Messenger/Controllers/Login/LoginViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "26"
+                  endingLineNumber = "26"
+                  offsetFromSymbolStart = "122">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
