@@ -12,7 +12,7 @@ class ConversationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .red
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -20,15 +20,16 @@ class ConversationViewController: UIViewController {
         validateAuth()
     }
     
-    @IBAction func logoutBtnAction(_ sender: Any) {
-        do{
-            try FirebaseAuth.Auth.auth().signOut()
-            validateAuth()
-        }
-        catch{
-            print("Logout error")
-        }
-    }
+//    @IBAction func logoutBtnAction(_ sender: Any) {
+//        do{
+//            try FirebaseAuth.Auth.auth().signOut()
+//            validateAuth()
+//        }
+//        catch{
+//            print("Logout error")
+//        }
+//    }
+    
     private func validateAuth(){
         if FirebaseAuth.Auth.auth().currentUser == nil {
             let vc = LoginViewController()

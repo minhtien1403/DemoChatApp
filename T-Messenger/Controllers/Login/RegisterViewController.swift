@@ -187,27 +187,24 @@ class RegisterViewController: UIViewController {
             
             //FIrebase Login
             
-            DatabaseManager.shared.isNewUser(with: email, completion: {isNew in
-                if isNew == false{
-                    self.alertUserLoginError(mess: "This email is already exist")
+            DatabaseManager.shared.isNewUser(with: email, completion: { [weak self] isNew in
+                guard let strongself = self else{
                     return
                 }
-                else{
-                    //register user email and login
-                    FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) {[weak self] (AuthDataResult, Error) in
-                        guard let strongself = self else{
-                            return
-                        }
-                        guard let _ = AuthDataResult, Error == nil  else{
-                            print("Can't create new User")
-                            return
-                        }
-                        
-                        //insert user information to database
-                        DatabaseManager.shared.insertUser(user: AppUser(email: email, firstname: firstname, lastname: lastname))
-                        strongself.navigationController?.dismiss(animated: true, completion: nil)
-                    }
+                guard isNew == true else{
+                    strongself.alertUserLoginError(mess: "This email is already exist, chosse another email")
+                    return
                 }
+                
+                FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { (AuthDataResult, Error) in
+                    guard AuthDataResult != nil, Error == nil else{
+                        print("Failed to create new user")
+                        return
+                    }
+                    DatabaseManager.shared.insertUser(user: AppUser(email: email, firstname: firstname, lastname: lastname))
+                    strongself.navigationController?.dismiss(animated: true, completion: nil)
+                }
+                
             })
             
         }

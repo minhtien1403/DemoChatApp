@@ -19,12 +19,12 @@ final class DatabaseManager{
                           completion: @escaping( (Bool) -> Void ) ){
         let safeEmail = email.replacingOccurrences(of: ".", with: "-")
         database.child(safeEmail).observeSingleEvent(of: .value, with: { datasnapshot in
-            guard (datasnapshot.value as? String) != nil else{
-                completion(false)
+            guard datasnapshot.value as? String != nil else{
+                completion(true)
                 return
             }
+            completion(false)
         })
-        completion(true)
     }
     
     /// insert new user to database
