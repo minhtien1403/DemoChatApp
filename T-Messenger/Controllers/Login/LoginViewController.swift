@@ -8,7 +8,14 @@
 
 import UIKit
 import FirebaseAuth
+import FBSDKLoginKit
+import GoogleSignIn
+import Firebase
+
 class LoginViewController: UIViewController {
+    
+    let FBLoginBtn = FBLoginButton(frame: .zero, permissions: [.publicProfile, .email])
+    let GgLoginBtn = GIDSignInButton(frame: .zero)
     
     private let scrollView:UIScrollView = {
         let scrollView = UIScrollView()
@@ -61,12 +68,41 @@ class LoginViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
         return button
     }()
+    
+    private let FacebookLoginBtn:UIButton = {
+        let button = UIButton()
+        button.setBackgroundImage(UIImage(named: "fb-login-btn"), for: .normal)
+        button.layer.cornerRadius = 12
+        button.layer.masksToBounds = true
+        return button
+    }()
+    
+    
+    private let GoogleLoginBtn:UIButton = {
+        let button = UIButton()
+        button.setBackgroundImage(UIImage(named: "google-login-btn"), for: .normal)
+        button.layer.cornerRadius = 12
+        button.layer.masksToBounds = true
+        button.layer.borderWidth = 1
+        return button
+    }()
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Log In"
         
+        //fb-login-btn
+        FBLoginBtn.delegate = self
+        FBLoginBtn.isHidden = true
+        
+        //google login button
+        GIDSignIn.sharedInstance()?.presentingViewController = self
+        GIDSignIn.sharedInstance()?.clientID = FirebaseApp.app()?.options.clientID
+        GIDSignIn.sharedInstance()?.delegate = self
+        
+        //Interface setup
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register",
         style: .done,
         target: self,
@@ -77,10 +113,21 @@ class LoginViewController: UIViewController {
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(loginButton)
+        scrollView.addSubview(FacebookLoginBtn)
+        scrollView.addSubview(GoogleLoginBtn)
         
         loginButton.addTarget(self,
                               action: #selector(loginBtnAction),
                               for: .touchUpInside)
+        
+        FacebookLoginBtn.addTarget(self,
+                                   action: #selector(FBLoginButtonAction),
+                                   for: .touchUpInside)
+        
+        GoogleLoginBtn.addTarget(self,
+                                 action: #selector(GgLoginButtonAction),
+                                 for: .touchUpInside)
+        
         emailField.delegate = self
         passwordField.delegate = self
         
@@ -92,7 +139,7 @@ class LoginViewController: UIViewController {
         scrollView.frame = view.bounds
         let size = scrollView.width/3
         imageView.frame = CGRect(x: (scrollView.width-size)/2,
-                                 y: 50,
+                                 y: 30,
                                  width: size,
                                  height: size)
         emailField.frame = CGRect(x: 30,
@@ -107,12 +154,32 @@ class LoginViewController: UIViewController {
                                    y: passwordField.bottom+10,
                                    width: scrollView.width-60,
                                    height: 52)
+        FacebookLoginBtn.frame = CGRect(x: 30,
+                                   y: loginButton.bottom+10,
+                                   width: scrollView.width-60,
+                                   height: 52)
+        GoogleLoginBtn.frame = CGRect(x: 30,
+                                      y: FacebookLoginBtn.bottom+10,
+                                      width: scrollView.width-60,
+                                      height: 52)
+        
 
     }
     
     @objc private func DidTapRegister(){
         let vc = RegisterViewController()
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
+    @objc private func FBLoginButtonAction(){
+        FBLoginBtn.sendActions(for: .touchUpInside)
+        FacebookLoginBtn.zoomInWithEasing()
+    }
+    
+    @objc private func GgLoginButtonAction(){
+        GgLoginBtn.sendActions(for: .touchUpInside)
+        GoogleLoginBtn.zoomInWithEasing()
     }
     
     @objc private func loginBtnAction(){
@@ -164,4 +231,97 @@ extension LoginViewController: UITextFieldDelegate{
         }
         return true
     }
+}
+
+//facebook login
+extension LoginViewController: LoginButtonDelegate{
+    func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
+        print("FB Logout Success")
+    }
+    
+    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
+        print("FB Login Btn Tapped")
+        guard let token = result?.token?.tokenString else{
+            print("Failed to login via facebook")
+            return
+        }
+        
+        GraphRequest(graphPath: "me",
+                     parameters: ["fields":"name, email"],
+                     tokenString: token,
+                     version: nil,
+                     httpMethod: .get).start { (GraphRequestConnection, Result, Error) in
+                        guard let result = Result as? [String:Any], Error == nil else{
+                            print("Failed to make graph request: \(Error?.localizedDescription ?? " ")")
+                            return
+                        }
+                        let name = result["name"] as? String
+                        let email = result["email"] as? String
+                        DatabaseManager.shared.isNewUser(with: email!) { (isNew) in
+                            guard isNew == true else {
+                                return
+                            }
+                            DatabaseManager.shared.insertFbUser(user: FBUser(email: email!, name: name!))
+                        }
+                        
+                        let credential = FacebookAuthProvider.credential(withAccessToken: token)
+                        FirebaseAuth.Auth.auth().signIn(with: credential) { [weak self] (AuthDataResult, Error) in
+                            guard let strongself = self else{
+                                return
+                            }
+                            guard AuthDataResult != nil, Error == nil else{
+                                print("FB credential Login Failed: \(Error!)")
+                                return
+                            }
+                            print("Fb credentail Login Success")
+                            strongself.navigationController?.dismiss(animated: true, completion: nil)
+                        }
+        }
+    }
+}
+
+//google login
+extension LoginViewController: GIDSignInDelegate{
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        if let error = error{
+            print("Failed to Login via Google because: \(error.localizedDescription)")
+            return
+        }
+        
+        guard let authentication = user.authentication else {
+            return
+        }
+        
+        let email = user.profile.email
+        let firstname = user.profile.givenName
+        let lastname = user.profile.familyName
+        
+        DatabaseManager.shared.isNewUser(with: email!) { (isNew) in
+            guard isNew == true else {
+                return
+            }
+            DatabaseManager.shared.insertUser(user: AppUser(email: email!,
+                                                            firstname: firstname!,
+                                                            lastname: lastname!))
+        }
+        
+        let credential = GoogleAuthProvider.credential(withIDToken: authentication.idToken,
+                                                       accessToken: authentication.accessToken)
+        FirebaseAuth.Auth.auth().signIn(with: credential) { [weak self] (AuthDataResult, Error) in
+            guard let strongself = self else{
+                return
+            }
+            guard AuthDataResult != nil, error == nil else{
+                return
+            }
+            print("Google credential login success")
+            strongself.navigationController?.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
+        
+    }
+    
+    
 }

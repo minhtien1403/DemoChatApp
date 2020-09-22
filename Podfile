@@ -9,4 +9,10 @@ target 'T-Messenger' do
 pod 'Firebase/Core'
 pod 'Firebase/Auth'
 pod 'Firebase/Database'
+
+# Pod for facebook login
+pod 'FBSDKLoginKit'
+
+# Pod for google login
+pod 'GoogleSignIn'
 end

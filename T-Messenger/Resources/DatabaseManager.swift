@@ -10,6 +10,7 @@ import Foundation
 import FirebaseDatabase
 
 final class DatabaseManager{
+    
     static let shared = DatabaseManager()
     private let database = Database.database().reference()
     
@@ -17,13 +18,11 @@ final class DatabaseManager{
     
     public func isNewUser(with email:String,
                           completion: @escaping( (Bool) -> Void ) ){
+        
         let safeEmail = email.replacingOccurrences(of: ".", with: "-")
         database.child(safeEmail).observeSingleEvent(of: .value, with: { datasnapshot in
-            guard datasnapshot.value as? String != nil else{
-                completion(true)
-                return
-            }
-            completion(false)
+            completion(!datasnapshot.exists())
+            return
         })
     }
     
@@ -34,6 +33,15 @@ final class DatabaseManager{
             "last_name":user.lastname
         ])
     }
+    
+    ///insert new fb user to database
+    public func insertFbUser(user: FBUser){
+        database.child(user.safeEmail).setValue([
+            "name":user.name,
+        ])
+    }
+    
+    
 }
 
 struct AppUser {
@@ -46,3 +54,14 @@ struct AppUser {
     }
 //    let avatar:String
 }
+
+struct FBUser {
+    let email:String
+    let name:String
+    var safeEmail: String {
+        let safeEmail = email.replacingOccurrences(of: ".", with: "-")
+        return safeEmail
+    }
+//    let avatar:String
+}
+

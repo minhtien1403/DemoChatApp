@@ -12,23 +12,12 @@ class ConversationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         validateAuth()
     }
-    
-//    @IBAction func logoutBtnAction(_ sender: Any) {
-//        do{
-//            try FirebaseAuth.Auth.auth().signOut()
-//            validateAuth()
-//        }
-//        catch{
-//            print("Logout error")
-//        }
-//    }
     
     private func validateAuth(){
         if FirebaseAuth.Auth.auth().currentUser == nil {
@@ -38,5 +27,6 @@ class ConversationViewController: UIViewController {
             present(nav, animated: true, completion: nil)
         }
     }
+    
 }
 

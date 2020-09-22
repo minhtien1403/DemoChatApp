@@ -188,6 +188,7 @@
 				047513382495204500F67FD2 /* Frameworks */,
 				047513392495204500F67FD2 /* Resources */,
 				29373847B85223DDF39A89C1 /* [CP] Embed Pods Frameworks */,
+				0E54FF67532ED965F7879AE5 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -246,6 +247,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		0E54FF67532ED965F7879AE5 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-T-Messenger/Pods-T-Messenger-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-T-Messenger/Pods-T-Messenger-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-T-Messenger/Pods-T-Messenger-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		29373847B85223DDF39A89C1 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;

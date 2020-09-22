@@ -8,11 +8,15 @@
 
 import UIKit
 import FirebaseAuth
+import FBSDKLoginKit
+import GoogleSignIn
 
 class ProfileViewController: UIViewController {
 
     @IBOutlet var tableview: UITableView!
     let data = ["Log out"]
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableview.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -36,6 +40,16 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        if let token = AccessToken.current, !token.isExpired{
+            FBLogOut()
+        }
+        else{
+            defaultLogOut()
+        }
+        
+    }
+    
+    func defaultLogOut(){
         do {
             try FirebaseAuth.Auth.auth().signOut()
             //if log out success
@@ -46,5 +60,19 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource{
         } catch  {
             print("Failed to Log out")
         }
+        
+    }
+    
+    func FBLogOut(){
+        let loginmanager = LoginManager()
+        loginmanager.logOut()
+        let vc = LoginViewController()
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
+    }
+    
+    func GgLogOut(){
+        GIDSignIn.sharedInstance()?.signOut()
     }
 }
