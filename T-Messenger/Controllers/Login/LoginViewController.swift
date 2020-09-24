@@ -11,11 +11,14 @@ import FirebaseAuth
 import FBSDKLoginKit
 import GoogleSignIn
 import Firebase
+import JGProgressHUD
 
 class LoginViewController: UIViewController {
     
     let FBLoginBtn = FBLoginButton(frame: .zero, permissions: [.publicProfile, .email])
     let GgLoginBtn = GIDSignInButton(frame: .zero)
+    
+    private let spinner = JGProgressHUD(style: .dark)
     
     private let scrollView:UIScrollView = {
         let scrollView = UIScrollView()
@@ -195,11 +198,18 @@ class LoginViewController: UIViewController {
                 return
         }
         
+        spinner.show(in: view)
+        
         //FIrebase Login
         FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { [weak self] (AuthDataResult, Error) in
             guard let strongself = self else{
                 return
             }
+            
+            DispatchQueue.main.async {
+                strongself.spinner.dismiss()
+            }
+            
             guard let result = AuthDataResult, Error == nil else{
                 print("Failed to login")
                 return
@@ -247,7 +257,7 @@ extension LoginViewController: LoginButtonDelegate{
         }
         
         GraphRequest(graphPath: "me",
-                     parameters: ["fields":"name, email"],
+                     parameters: ["fields":"first_name, last_name, picture.type(large), email"],
                      tokenString: token,
                      version: nil,
                      httpMethod: .get).start { (GraphRequestConnection, Result, Error) in
@@ -255,13 +265,52 @@ extension LoginViewController: LoginButtonDelegate{
                             print("Failed to make graph request: \(Error?.localizedDescription ?? " ")")
                             return
                         }
-                        let name = result["name"] as? String
+                        
+                      
+                        // get avatar fb url
+                        let picture = result["picture"] as? [String:Any]
+                        let picturedata = picture!["data"] as? [String:Any]
+                        let pictureUrl = picturedata!["url"] as? String
+                        
+                        
+                        let firstname = result["first_name"] as? String
+                        let lastname = result["last_name"] as? String
                         let email = result["email"] as? String
                         DatabaseManager.shared.isNewUser(with: email!) { (isNew) in
                             guard isNew == true else {
                                 return
                             }
-                            DatabaseManager.shared.insertFbUser(user: FBUser(email: email!, name: name!))
+                            print("insert User success")
+                            let appUser = AppUser(email: email!, firstname: firstname!, lastname: lastname!)
+                            DatabaseManager.shared.insertUser(user: appUser) { (success) in
+                                if success{
+                                    //upload image
+                                    guard let url = URL(string: pictureUrl!) else{
+                                        print("no picture url")
+                                        return
+                                    }
+                                    print("downloading data from fb")
+                                    
+                                    guard let data = try? Data(contentsOf: url) else{
+                                        print("no data")
+                                        return
+                                    }
+                                    
+                                    let filename = appUser.avatarFileName
+                                    StorageManager.shared.uploadAvatar(with: data, filename: filename, completion: { result in
+                                        switch result {
+                                        case.success(let downloadUrl):
+                                            UserDefaults.standard.set(downloadUrl, forKey: "avatar_picture_url")
+                                            break
+                                        case.failure(let error):
+                                            print("Storage error: \(error.localizedDescription) - from fb")
+                                            break
+                                        }
+                                    })
+                                }
+                                
+                            }
+                            
                         }
                         
                         let credential = FacebookAuthProvider.credential(withAccessToken: token)
@@ -300,9 +349,35 @@ extension LoginViewController: GIDSignInDelegate{
             guard isNew == true else {
                 return
             }
-            DatabaseManager.shared.insertUser(user: AppUser(email: email!,
-                                                            firstname: firstname!,
-                                                            lastname: lastname!))
+            let appUser = AppUser(email: email!, firstname: firstname!, lastname: lastname!)
+            DatabaseManager.shared.insertUser(user: appUser) { (success) in
+                if success{
+                    
+                    if user.profile.hasImage{
+                        guard let url = user.profile.imageURL(withDimension: 200) else {
+                            print("No url for google")
+                            return
+                        }
+                        guard let data = try? Data(contentsOf: url) else{
+                            print("no data")
+                            return
+                        }
+                        //upload image
+                        print("uploading google avatar ...")
+                        let filename = appUser.avatarFileName
+                        StorageManager.shared.uploadAvatar(with: data, filename: filename, completion: { result in
+                            switch result {
+                            case.success(let downloadUrl):
+                                UserDefaults.standard.set(downloadUrl, forKey: "avatar_picture_url")
+                                break
+                            case.failure(let error):
+                                print("Storage error: \(error.localizedDescription) - from fb")
+                                break
+                            }
+                        })
+                    }
+                }
+            }
         }
         
         let credential = GoogleAuthProvider.credential(withIDToken: authentication.idToken,
@@ -320,7 +395,7 @@ extension LoginViewController: GIDSignInDelegate{
     }
     
     func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
-        
+        print("Google Logout")
     }
     
     

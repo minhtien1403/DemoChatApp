@@ -14,10 +14,10 @@
             filePath = "T-Messenger/Controllers/Login/LoginViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            startingLineNumber = "34"
+            endingLineNumber = "34"
+            landmarkName = "imageView"
+            landmarkType = "24">
             <Locations>
                <Location
                   uuid = "BDC4AB03-66D3-4369-BC03-BF5BB9A34F29 - 95b86e741851233"

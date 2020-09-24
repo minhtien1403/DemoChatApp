@@ -8,9 +8,12 @@
 
 import UIKit
 import FirebaseAuth
+import JGProgressHUD
 
 class RegisterViewController: UIViewController {
 
+    private let spinner = JGProgressHUD(style: .dark)
+    
     private let scrollView:UIScrollView = {
             let scrollView = UIScrollView()
             scrollView.clipsToBounds = true
@@ -186,11 +189,17 @@ class RegisterViewController: UIViewController {
             }
             
             //FIrebase Login
+            spinner.show(in: view)
             
             DatabaseManager.shared.isNewUser(with: email, completion: { [weak self] isNew in
                 guard let strongself = self else{
                     return
                 }
+                
+                DispatchQueue.main.async {
+                    strongself.spinner.dismiss()
+                }
+                
                 guard isNew == true else{
                     strongself.alertUserLoginError(mess: "This email is already exist, chosse another email")
                     return
@@ -201,7 +210,26 @@ class RegisterViewController: UIViewController {
                         print("Failed to create new user")
                         return
                     }
-                    DatabaseManager.shared.insertUser(user: AppUser(email: email, firstname: firstname, lastname: lastname))
+                    let appUser = AppUser(email: email, firstname: firstname, lastname: lastname)
+                    DatabaseManager.shared.insertUser(user: appUser) { (success) in
+                        if success{
+                            // upload image
+                            guard let image = strongself.imageView.image, let data = image.pngData() else{
+                                return
+                            }
+                            let filename = appUser.avatarFileName
+                            StorageManager.shared.uploadAvatar(with: data, filename: filename, completion: { result in
+                                switch result {
+                                case.success(let downloadUrl):
+                                    UserDefaults.standard.set(downloadUrl, forKey: "avatar_picture_url")
+                                    break
+                                case.failure(let error):
+                                    print("Storage error: \(error.localizedDescription)")
+                                    break
+                                }
+                            })
+                        }
+                    }
                     strongself.navigationController?.dismiss(animated: true, completion: nil)
                 }
                 

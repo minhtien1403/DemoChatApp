@@ -27,18 +27,18 @@ final class DatabaseManager{
     }
     
     /// insert new user to database
-    public func insertUser(user: AppUser){
+    public func insertUser(user: AppUser, completion: @escaping (Bool) -> Void){
         database.child(user.safeEmail).setValue([
             "first_name":user.firstname,
             "last_name":user.lastname
-        ])
-    }
-    
-    ///insert new fb user to database
-    public func insertFbUser(user: FBUser){
-        database.child(user.safeEmail).setValue([
-            "name":user.name,
-        ])
+            ],withCompletionBlock: {error,_ in
+                guard error == nil else{
+                    print("Failed to write to database")
+                    completion(false)
+                    return
+                }
+                completion(true)
+        })
     }
     
     
@@ -52,16 +52,10 @@ struct AppUser {
         let safeEmail = email.replacingOccurrences(of: ".", with: "-")
         return safeEmail
     }
-//    let avatar:String
+    var avatarFileName: String{
+        return "\(safeEmail)_avatar_picture.png"
+    }
 }
 
-struct FBUser {
-    let email:String
-    let name:String
-    var safeEmail: String {
-        let safeEmail = email.replacingOccurrences(of: ".", with: "-")
-        return safeEmail
-    }
-//    let avatar:String
-}
+
 
