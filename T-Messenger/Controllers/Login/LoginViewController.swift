@@ -214,6 +214,7 @@ class LoginViewController: UIViewController {
                 print("Failed to login")
                 return
             }
+            UserDefaults.standard.set(email, forKey: "user_email")
             let user = result.user
             
             print("login success as user: \(user)")
@@ -276,6 +277,9 @@ extension LoginViewController: LoginButtonDelegate{
                         let firstname = result["first_name"] as? String
                         let lastname = result["last_name"] as? String
                         let email = result["email"] as? String
+                        
+                        UserDefaults.standard.set(email, forKey: "user_email")
+                        
                         DatabaseManager.shared.isNewUser(with: email!) { (isNew) in
                             guard isNew == true else {
                                 return
@@ -344,11 +348,14 @@ extension LoginViewController: GIDSignInDelegate{
         let email = user.profile.email
         let firstname = user.profile.givenName
         let lastname = user.profile.familyName
+        UserDefaults.standard.set(email, forKey: "user_email")
         
         DatabaseManager.shared.isNewUser(with: email!) { (isNew) in
             guard isNew == true else {
                 return
             }
+            
+            // if this is new user, insert user information to database
             let appUser = AppUser(email: email!, firstname: firstname!, lastname: lastname!)
             DatabaseManager.shared.insertUser(user: appUser) { (success) in
                 if success{

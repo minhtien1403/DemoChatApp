@@ -23,6 +23,53 @@ class ProfileViewController: UIViewController {
         tableview.delegate = self
         tableview.dataSource = self
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+         tableview.tableHeaderView = createTableHeader()
+    }
+    
+    func createTableHeader() -> UIView {
+        let safeEmail = DatabaseManager.safemail(email: (UserDefaults.standard.value(forKey: "user_email") as? String)!)
+        print(safeEmail)
+        let path = "images/"+safeEmail+"_avatar_picture.png"
+        
+        let headerView = UIView(frame: CGRect(x: 0,
+                                              y: 0,
+                                              width: self.view.width,
+                                              height: 300))
+        headerView.backgroundColor = .white
+        let imageview = UIImageView(frame: CGRect(x: (headerView.width-150)/2,
+                                                  y: (headerView.height-150)/2,
+                                                  width: 150, height: 150))
+        imageview.contentMode = .scaleAspectFill
+        imageview.layer.borderWidth = 1
+        imageview.layer.borderColor = UIColor.black.cgColor
+        imageview.layer.cornerRadius = imageview.width/2
+        imageview.layer.masksToBounds = true
+        imageview.image = UIImage(systemName: "person.circle")
+        imageview.tintColor = .gray
+        StorageManager.shared.getDownloadUrl(for: path, completion: { [weak self] Result in
+            switch Result{
+            case .success(let url):
+                self?.downloadAndSetAvatar(imageview: imageview, url: url)
+                break
+            case .failure(let error):
+                print("failed to get download url because: \(error.localizedDescription)")
+            }
+        })
+        headerView.addSubview(imageview)
+        return headerView
+    }
+    
+    func downloadAndSetAvatar(imageview: UIImageView, url: URL){
+        DispatchQueue.main.async {
+            let data = try? Data(contentsOf: url)
+            if let imgData = data {
+                imageview.image = UIImage(data: imgData)
+            }
+        }
+    }
+    
 }
 
 extension ProfileViewController: UITableViewDelegate, UITableViewDataSource{

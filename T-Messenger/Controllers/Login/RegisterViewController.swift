@@ -204,6 +204,8 @@ class RegisterViewController: UIViewController {
                     strongself.alertUserLoginError(mess: "This email is already exist, chosse another email")
                     return
                 }
+                UserDefaults.standard.set(email, forKey: "user_email")
+                
                 print("\(isNew)")
                 FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { (AuthDataResult, Error) in
                     guard AuthDataResult != nil, Error == nil else{
