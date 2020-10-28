@@ -11,6 +11,8 @@ import JGProgressHUD
 
 class NewConverstionViewController: UIViewController {
     
+    public var completion: (([String:String]) -> (Void))?
+    
     private let spinner = JGProgressHUD(style: .dark)
     
     private var users = [[String:String]]()
@@ -76,16 +78,7 @@ class NewConverstionViewController: UIViewController {
 }
 
 extension NewConverstionViewController: UISearchBarDelegate{
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        guard  let text = searchBar.text, !text.replacingOccurrences(of: " ", with: "").isEmpty else {
-//            return
-//        }
-//        searchBar.resignFirstResponder()
-//
-//        searchResult.removeAll()
-//        spinner.show(in: view)
-//        self.searchUser(query: text)
-    }
+
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text!.isEmpty{
@@ -106,7 +99,7 @@ extension NewConverstionViewController: UISearchBarDelegate{
             self.filterUser(with: query)
         }
         else{
-            //let fetch then filtering
+            //let fetch list of all users then filtering
             DatabaseManager.shared.getAllUser(completion: { [weak self] result in
                 switch result {
                 case .success(let userCollection):
@@ -137,7 +130,6 @@ extension NewConverstionViewController: UISearchBarDelegate{
             return name.contains(query.lowercased())
         })
         self.searchResult = result
-        print(searchResult.count)
         updateUI()
     }
     
@@ -167,5 +159,10 @@ extension NewConverstionViewController: UITableViewDelegate,UITableViewDataSourc
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         //start conversation
+        let targetUserData = searchResult[indexPath.row]
+        //chua hieu work flow cua doan code nay
+        dismiss(animated: true) { [weak self] in
+            self?.completion?(targetUserData)
+        }
     }
 }

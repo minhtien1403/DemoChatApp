@@ -323,7 +323,7 @@ extension LoginViewController: LoginButtonDelegate{
                                 return
                             }
                             guard AuthDataResult != nil, Error == nil else{
-                                print("FB credential Login Failed: \(Error!)")
+                                print("FB credential Login Failed: \(String(describing: Error?.localizedDescription))")
                                 return
                             }
                             print("Fb credentail Login Success")

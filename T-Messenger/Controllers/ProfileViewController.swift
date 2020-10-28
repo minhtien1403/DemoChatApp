@@ -28,8 +28,11 @@ class ProfileViewController: UIViewController {
          tableview.tableHeaderView = createTableHeader()
     }
     
-    func createTableHeader() -> UIView {
-        let safeEmail = DatabaseManager.safemail(email: (UserDefaults.standard.value(forKey: "user_email") as? String)!)
+    func createTableHeader() -> UIView? {
+        guard let email = UserDefaults.standard.value(forKey: "user_email") as? String else {
+            return nil
+        }
+        let safeEmail = DatabaseManager.safemail(email: email)
         print(safeEmail)
         let path = "images/"+safeEmail+"_avatar_picture.png"
         
@@ -48,6 +51,8 @@ class ProfileViewController: UIViewController {
         imageview.layer.masksToBounds = true
         imageview.image = UIImage(systemName: "person.circle")
         imageview.tintColor = .gray
+        
+        
         StorageManager.shared.getDownloadUrl(for: path, completion: { [weak self] Result in
             switch Result{
             case .success(let url):
