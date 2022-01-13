@@ -1,6 +1,6 @@
 # DemoChatApp
 ## Register View - You can create new account by your email here
-![image](https://user-images.githubusercontent.com/54258059/103167427-b4f44d80-485d-11eb-8785-48f06a0dfcfb.png)
+<img src="https://user-images.githubusercontent.com/54258059/103167427-b4f44d80-485d-11eb-8785-48f06a0dfcfb.png" witdh=250>
 ## Login View - You can login with the account you just created or login via facebook/google
 ![image](https://user-images.githubusercontent.com/54258059/103167430-b756a780-485d-11eb-866b-7d513708cb9d.png)
 ## Profile View
